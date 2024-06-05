@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="./styles.css" />
+</head>
+
+<body>
+    <header>
+        <div id="header">
+            Portal de Notícias do IBGE
+        </div>
+        <div id="div-search">
+            <form id="form-search">
+                <input type="search" name="search" id="search" placeholder="Buscar Notícia por Termo" required />
+                <input type="submit" id="submit" value="🔍" />
+            </form>
+            <!---------------------------------------------------------------------->
+            <dialog id="dialog-filtro">
+                <form method="dialog" id="form-filtro">
+                    <section id="sec-form">
+                        <p id="p-form">
+                            <label for="button-tipo">Tipo:</label>
+                            <select id="button-tipo" name="tipo" value="Selecione">
+                                <option>Selecione</option>
+                                <option>Notícia</option>
+                                <option>Realese</option>
+                            </select>
+                            <label for="button-qtd">Quantidade:</label>
+                            <select id="button-qtd" name="qtd">
+                                <option>5</option>
+                                <option selected>10</option>
+                                <option>20</option>
+                            </select>
+                            <label for="button-de">De:</label>
+                            <input type="date" id="button-de" name="trip-start" min="2020-01-01"
+                                max="2024-12-31" />
+                            <label for="button-ate">Até:</label>
+                            <input type="date" id="button-ate" name="trip-end" min="2020-01-01"
+                                max="2024-12-31" />
+
+                            <button type="submit" id="close-button">X</button>
+
+                            <input type="submit" id="aplicarForm" value="Aplicar">
+                        </p>
+                    </section>
+                </form>
+            </dialog>
+
+            <button type="button" id="abrir-filtro">
+                <svg width="20" height="20" fill="#f0f0f0" viewBox="0 0 80 90" focusable="false"
+                    xmlns="http://www.w3.org/2000/svg">
+                    <path d="m 0,0 30,45 0,30 10,15 0,-45 30,-45 Z"></path>
+                </svg>
+            </button>
+        </div>
+
+    </header>
+    <main>
+
+    </main>
+
+    <footer>
+        &copy; Prova segundo bimestre - Programação WEB
+    </footer>
+</body>
+<script src="./script.js"></script>
+
+</html>
