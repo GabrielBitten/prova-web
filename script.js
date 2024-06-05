@@ -248,37 +248,56 @@ function updateMainContent(data) {
     }
     main.innerHTML = html;
 }*/
+function formatarTempoDecorrido(dataPublicacao) {
+    const dataAtual = new Date();
+    const dataPublicacaoObj = new Date(dataPublicacao);
+
+   
+    if (isNaN(dataPublicacaoObj.getTime())) {
+        return 'Data de publicação inválida';
+    }
+
+    const diff = Math.abs(dataAtual - dataPublicacaoObj);
+    const umDia = 24 * 60 * 60 * 1000;
+    const numDias = Math.round(diff / umDia);
+
+    if (numDias === 0) {
+        return 'Publicado hoje';
+    } else if (numDias === 1) {
+        return 'Publicado ontem';
+ 
+    } else {
+        return `Publicado ${numDias} dias atrás`;
+    }
+}
 
 function updateMainContent(data) {
     let html = '';
-    const imagensStringificadas = [];
-    const apiUrl = 'https://servicodados.ibge.gov.br/api/v3/noticias/images'; // URL base da API do IBGE
-    //const apiUrl = "https://agenciadenoticias.ibge.gov.br/images/agenciadenoticias/ibge/"
-    //https://agenciadenoticias.ibge.gov.br/images/agenciadenoticias/ibge/
+    const apiUrl = 'https://agenciadenoticias.ibge.gov.br/';
 
     if (data.items && data.items.length > 0) {
-        const totalItems = Math.min(data.items.length, 20); 
+        for (let i = 0; i < data.items.length; i++) {
+            const imagemStringificada = data.items[i].imagens;
+            const caminhoDaImagem = JSON.parse(imagemStringificada).image_intro;
 
-        for (let i = 0; i < totalItems; i++) {
-            const imagemObjeto = data.items[i].imagens; 
+            if (caminhoDaImagem) {
+                const urlImagem = apiUrl + caminhoDaImagem;
 
-            if (imagemObjeto) {
-                const caminhoDaImagemIntro = apiUrl + imagemObjeto;
-                //const caminhoDaImagemFulltext = apiUrl + imagemObjeto.image_fulltext;
-
-                imagensStringificadas.push(JSON.stringify(caminhoDaImagemIntro));
+                const tempoDecorrido = formatarTempoDecorrido(data.items[i].data_publicacao);
 
                 html += `
                 <div class="div">
                     <ul>
                         <li>
-                            <a href="${caminhoDaImagemIntro}" target="_blank">
-                                <img src="${caminhoDaImagemIntro}" alt="Imagem da Notícia Intro"/>
+                            <a href="${urlImagem}" target="_blank">
+                                <img src="${urlImagem}" alt="Imagem da Notícia Intro"/>
                             </a>
-                            <h2>${data.items[i].titulo}</h2>
-                            <p>${data.items[i].introducao}</p>
-                            <a href="${data.items[i].link}" target="_blank">${data.items[i].link}</a>
-                            <p class="dataPubli">${data.items[i].data_publicacao}</p>
+                            <div>
+                                <h2>${data.items[i].titulo}</h2>
+                                <p>${data.items[i].introducao}</p>
+                                <p class="tempoPublicacao">${tempoDecorrido}</p>
+                                <button class="leiaMais">Leia Mais</button>
+                            </div>
                         </li>
                     </ul>
                 </div>
@@ -291,9 +310,14 @@ function updateMainContent(data) {
 
     main.innerHTML = html;
 
-    console.log(JSON.stringify(imagensStringificadas)); // Aqui você tem as URLs das imagens em formato de string
+    // Adicionando eventos de clique aos botões "Leia Mais"
+    const botoesLeiaMais = document.querySelectorAll('.leiaMais');
+    botoesLeiaMais.forEach(botao => {
+        botao.addEventListener('click', () => {
+            // Obtém o link da notícia
+            const linkNoticia = botao.previousSibling.previousSibling.previousSibling.previousSibling.href;
+            // Redireciona para o link da notícia
+            window.open(linkNoticia, '_blank');
+        });
+    });
 }
-
-
-
-

@@ -4,31 +4,31 @@ body {
     background-color: #f0f0f0;
 }
 
-header{
+header {
     display: flex;
     flex-direction: column;
     flex-wrap: wrap;
     align-items: center;
-    justify-content:space-around;
-    background-color: #4682b4; 
+    justify-content: space-around;
+    background-color: #4682b4;
     padding: 30px 30px;
 }
 
-#abrir-filtro{
+#abrir-filtro {
     position: absolute;
     cursor: pointer;
     top: 12vh;
-    right: 2vh; 
-    height: 50px; 
+    right: 2vh;
+    height: 50px;
     width: 50px;
     background-color: #4682b4;
 }
 
-select{
+select {
     cursor: pointer;
 }
 
-#p-form{
+#p-form {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     grid-template-rows: repeat(2, 1fr);
@@ -45,14 +45,14 @@ input[type="date"] {
     width: 90%;
 }
 
-#aplicarForm{
+#aplicarForm {
     background-color: #4682b4;
     display: block;
     margin: auto;
     color: white;
-    width: 200%;/*SUPER GAMBIARRA S2*/
+    width: 200%;
     height: 25px;
-    max-width: 90vw;/*COM ERRO*/
+    max-width: 90vw;
     padding: 0;
     border-radius: 5px;
 }
@@ -60,34 +60,22 @@ input[type="date"] {
 p {
     margin: 0;
 }
-/*
-#p-form {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    grid-template-rows: repeat(2, 1fr); ;
-    gap: 10px; 
-    justify-items: stretch;
-}
 
-#sec-form input[type="submit"] {
-    width: 100%;
-}*/
-
-#dialog-filtro{
+#dialog-filtro {
     width: 30vw;
     height: 20vh;
-    border-radius: 5px; 
+    border-radius: 5px;
 }
 
 #button-de,
 #button-ate,
-select{
+select {
     border-radius: 3px;
     border: 1px solid;
 }
 
 button,
-input{
+input {
     border: 0;
     cursor: pointer;
 }
@@ -106,7 +94,6 @@ input{
     color: #cccccc;
 }
 
-
 #search {
     width: 50vw;
     height: 5vh;
@@ -114,75 +101,58 @@ input{
     padding-left: 10px;
 }
 
-#close-button{
+#close-button {
     background-color: transparent;
     padding: 0;
     border-radius: 7px;
     cursor: pointer;
-    position: absolute; 
+    position: absolute;
     top: 0;
-    right: 5px; 
-    height: 20%; 
+    right: 5px;
+    height: 20%;
     width: 30px;
 }
 
-#submit{
+#submit {
     background-color: white;
     padding: 0;
     border-radius: 7px;
     cursor: pointer;
-    position: absolute; 
+    position: absolute;
     top: 0;
-    right: 0; 
-    height: 100%; 
+    right: 0;
+    height: 100%;
     width: 40px;
 }
-/*
-input[type="submit"] {
-    cursor: pointer;
-    position: absolute; 
-    top: 0;
-    right: 0; 
-    height: 100%; 
-    width: 40px;
-}*/
 
-#div-filtro{
+#div-filtro {
     display: grid;
-    
 }
 
-#abri-filtro{
-    align-items:end;
-}
-
-#form-search{
+#form-search {
     position: relative;
 }
 
-#button-filtro {
-    width: 50vw;
-    height: 5vh;
-}
-
 main {
-    max-width: 100ch;/*OBRIGATORIO*/
+    max-width: 100ch;
     display: grid;
     grid-template-columns: repeat(1, 1fr);
     justify-content: center;
-    align-items: center; 
+    align-items: center;
     margin: 0 25%;
     background-color: #f0f0f0;
 }
 
-div{/*pode mudar dps*/
+div {
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
     align-items: center;
-}/* DESCOBRIR ERRO  */
+    width: 800px;
+    
+}
 
-ul{
+ul {
     display: flex;
     flex-direction: column;
     flex-wrap: wrap;
@@ -193,21 +163,43 @@ ul{
 }
 
 li {
+    display: flex;
     list-style-type: none;
     width: 100%;
+    border-bottom: 2px solid #cccccc;
+    padding-bottom: 40px; 
 }
 
-img{
-    width: 40px;
-    height: 40px;
+
+.leiaMais{
+    border-radius: 5px;
+    padding: 5px;
+    width: 100%;
+    margin: 10px;
+    margin-bottom: 0px;
+    background-color: #cccccc;
+
 }
 
-.dataPubli{
+.tempoPublicacao{
+   
+    margin-left: 70%;
+}
+
+h2{
+     margin-top: 0px;
+     margin-left: 10px;
+}
+p{
+    margin-top: 0px;
+    margin-left: 10px;
+}
+.dataPubli {
     display: grid;
     justify-items: end;
 }
 
-footer{
+footer {
     background-color: #4682b4;
     color: white;
     display: flex;
@@ -217,23 +209,30 @@ footer{
     padding: 25px 25px;
 }
 
-#divSB{
+#divSB {
     height: 70vh;
     display: flex;
     justify-content: center;
 }
 
 #pSB,
-#pInicio{
+#pInicio {
     text-align: center;
 }
 
 #pInicio {
-    text-decoration: none; 
+    text-decoration: none;
     cursor: pointer;
 }
 
 #pInicio:hover {
     color: #5e5e5e;
     text-decoration: underline;
+}
+
+
+img {
+    width: 250px; 
+    height: 250px; 
+    object-fit: cover; 
 }
