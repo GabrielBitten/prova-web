@@ -252,23 +252,28 @@ function formatarTempoDecorrido(dataPublicacao) {
     const dataAtual = new Date();
     const dataPublicacaoObj = new Date(dataPublicacao);
 
-   
-    if (isNaN(dataPublicacaoObj.getTime())) {
-        return 'Data de publicação inválida';
-    }
-
     const diff = Math.abs(dataAtual - dataPublicacaoObj);
     const umDia = 24 * 60 * 60 * 1000;
-    const numDias = Math.round(diff / umDia);
+    const numDias = Math.floor(diff / umDia);
 
+    let tempoDecorrido = '';
     if (numDias === 0) {
-        return 'Publicado hoje';
+        tempoDecorrido = 'Publicado hoje';
     } else if (numDias === 1) {
-        return 'Publicado ontem';
- 
+        tempoDecorrido = 'Publicado ontem';
     } else {
-        return `Publicado ${numDias} dias atrás`;
+        tempoDecorrido = `Publicado há ${numDias} dias`;
     }
+
+    return tempoDecorrido;
+}
+
+function adicionarPrefixoEditorias(editorias) {
+    const editoriasFormatadas = [];
+    for (const editoria of editorias) {
+        editoriasFormatadas.push(`${editoria}`);
+    }
+    return editoriasFormatadas.join('');
 }
 
 function updateMainContent(data) {
@@ -284,6 +289,7 @@ function updateMainContent(data) {
                 const urlImagem = apiUrl + caminhoDaImagem;
 
                 const tempoDecorrido = formatarTempoDecorrido(data.items[i].data_publicacao);
+                const editoriasFormatadas = adicionarPrefixoEditorias(data.items[i].editorias);
 
                 html += `
                 <div class="div">
@@ -295,8 +301,14 @@ function updateMainContent(data) {
                             <div>
                                 <h2>${data.items[i].titulo}</h2>
                                 <p>${data.items[i].introducao}</p>
-                                <p class="tempoPublicacao">${tempoDecorrido}</p>
-                                <button class="leiaMais">Leia Mais</button>
+                                
+                                <div class="info">
+                    <p class="editorias">#${editoriasFormatadas}</p>
+                    <p class="tempoPublicacao">${tempoDecorrido}</p>
+                                </div>
+                                <a class="link" href="${data.items[i].link}" target="_blank">
+                                    <button class="leiaMais">Leia Mais</button>
+                                </a>
                             </div>
                         </li>
                     </ul>

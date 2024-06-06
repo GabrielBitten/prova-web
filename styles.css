@@ -152,6 +152,7 @@ div {
     
 }
 
+
 ul {
     display: flex;
     flex-direction: column;
@@ -180,12 +181,18 @@ li {
     background-color: #cccccc;
 
 }
-
-.tempoPublicacao{
-   
-    margin-left: 70%;
+.link{
+    width: 95%;
 }
 
+
+
+.info{
+    display: flex;
+    max-width: 600px;
+
+    justify-content: space-between;
+}
 h2{
      margin-top: 0px;
      margin-left: 10px;
