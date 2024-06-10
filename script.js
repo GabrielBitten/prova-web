@@ -252,7 +252,7 @@ function formatarTempoDecorrido(dataPublicacao) {
     const dataAtual = new Date();
     const dataPublicacaoObj = new Date(dataPublicacao);
 
-    const diff = Math.abs(dataAtual - dataPublicacaoObj);
+    const diff = Math.abs(dataPublicacaoObj - dataAtual );
     const umDia = 24 * 60 * 60 * 1000;
     const numDias = Math.floor(diff / umDia);
 
@@ -275,6 +275,7 @@ function adicionarPrefixoEditorias(editorias) {
     }
     return editoriasFormatadas.join('');
 }
+// Selecione todos os elementos li com a classe .li1
 
 function updateMainContent(data) {
     let html = '';
@@ -294,7 +295,7 @@ function updateMainContent(data) {
                 html += `
                 <div class="div">
                     <ul>
-                        <li>
+                        <li class="li1">
                             <a href="${urlImagem}" target="_blank">
                                 <img src="${urlImagem}" alt="Imagem da Notícia Intro"/>
                             </a>
@@ -303,8 +304,9 @@ function updateMainContent(data) {
                                 <p>${data.items[i].introducao}</p>
                                 
                                 <div class="info">
-                    <p class="editorias">#${editoriasFormatadas}</p>
-                    <p class="tempoPublicacao">${tempoDecorrido}</p>
+                                <p class="editorias">#${editoriasFormatadas}</p>
+                                <p class="tempoPublicacao">${tempoDecorrido}</p>
+                       
                                 </div>
                                 <a class="link" href="${data.items[i].link}" target="_blank">
                                     <button class="leiaMais">Leia Mais</button>
@@ -313,9 +315,27 @@ function updateMainContent(data) {
                         </li>
                     </ul>
                 </div>
+                
                 `;
+                
             }
         }
+        html += `
+        <div class="div-buttons">
+            <ul class="pagination">
+                <li><button>1</button></li>
+                <li><button>2</button></li>
+                <li><button>3</button></li>
+                <li><button>4</button></li>
+                <li><button>5</button></li>
+                <li><button>6</button></li>
+                <li><button>7</button></li>
+                <li><button>8</button></li>
+                <li><button>9</button></li>
+                <li><button>10</button></li>
+            </ul>
+        </div>
+        `;
     } else {
         semBusca();
     }
@@ -323,11 +343,11 @@ function updateMainContent(data) {
     main.innerHTML = html;
 
     // Adicionando eventos de clique aos botões "Leia Mais"
-    const botoesLeiaMais = document.querySelectorAll('.leiaMais');
+    const botoesLeiaMais = document.querySelectorAll('a .leiaMais');
     botoesLeiaMais.forEach(botao => {
         botao.addEventListener('click', () => {
             // Obtém o link da notícia
-            const linkNoticia = botao.previousSibling.previousSibling.previousSibling.previousSibling.href;
+            const linkNoticia = botao.parentElement.href;
             // Redireciona para o link da notícia
             window.open(linkNoticia, '_blank');
         });
