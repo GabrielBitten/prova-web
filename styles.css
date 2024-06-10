@@ -7,7 +7,9 @@ body {
     font-weight: 400;
     font-style: normal;
 }
-
+@media (max-width: 700px) { 
+    .li1{ 
+        flex-wrap: wrap; } }
 header {
     display: flex;
     flex-direction: column;
