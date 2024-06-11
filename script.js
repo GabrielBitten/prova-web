@@ -8,6 +8,8 @@ const dialogF = document.getElementById('dialog-filtro')
 
 const header = document.getElementById("header")
 
+const filterCount = document.getElementById('filter-count');
+
 //URL e Main
 //const apiUrl = "https://servicodados.ibge.gov.br/api/v3/noticias?qtd=10&tipo=noticia"
 const apiUrl = "https://servicodados.ibge.gov.br/api/v3/noticias?qtd=10"
@@ -215,8 +217,30 @@ async function handleChange() {
     } catch (error) {
         console.error("Ocorreu um erro ao aplicar o filtro:", error);
     }
+    updateFilterCount();
 }
+document.addEventListener('DOMContentLoaded', () => {
+    // Atualiza a contagem de filtros
+    updateFilterCount();
+});
 
+function updateFilterCount() {
+
+    const selectedValueTipo = document.getElementById("button-tipo").value;
+    const deValue = document.getElementById("button-de").value;
+    const ateValue = document.getElementById("button-ate").value;
+
+    let count = 1; 
+
+ 
+    if (selectedValueTipo !== "Selecione") count++;
+    if (deValue) count++;
+    if (ateValue) count++;
+  
+    filterCount.textContent = count;
+
+ console.log(filterCount.textContent)
+}
 
 
 /*
