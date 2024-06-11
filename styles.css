@@ -119,17 +119,6 @@ main ul {
     
 }
 
-.pagination {
-   
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    display: flex;
-    gap: 5px;
-    
- 
-   
-}
 
 .pagination button {
    
@@ -137,9 +126,10 @@ main ul {
     font-weight: bold;
     height: 45px;
     width: 45px;
-    border: 2px solid #4682b4; /* Adicione uma borda para cada botão */
+    border: 2px solid #4682b4; /* Adicione uma borda  para cada botão */
     border-radius: 5px;
     cursor: pointer;
+  margin-top:50px;
 }
 
 .pagination button:hover {
@@ -238,7 +228,7 @@ div {
 }
 
 
-ul {
+.ul-noticia {
     display: flex;
     flex-direction: column;
     flex-wrap: wrap;
@@ -295,6 +285,7 @@ p{
 }
 
 footer {
+    position:relative;
     background-color: #4682b4;
     color: white;
     display: flex;
@@ -302,6 +293,21 @@ footer {
     flex-wrap: wrap;
     align-items: center;
     padding: 25px 25px;
+    margin-top:50px;
+
+}
+.pagination {
+   position:absolute;
+    list-style: none;
+    padding: 0;
+    margin: 50px;
+    display: flex;
+    gap: 5px;
+    flex-wrap:wrap;
+  margin-bottom:270px;
+    
+ 
+   
 }
 
 #divSB {
@@ -347,3 +353,4 @@ img {
         bottom: 10px;
       
     }
+}
