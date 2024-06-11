@@ -116,18 +116,23 @@ main ul {
     display: flex;
     justify-content: center; /* Para centralizar os botões horizontalmente */
     margin-bottom: 20px;
+    
 }
 
 .pagination {
+   
     list-style: none;
     padding: 0;
     margin: 0;
     display: flex;
     gap: 5px;
+    
+ 
+   
 }
 
 .pagination button {
-    
+   
     color: #4682b4;
     font-weight: bold;
     height: 45px;

@@ -238,10 +238,9 @@ function updateFilterCount() {
     if (ateValue) count++;
   
     filterCount.textContent = count;
-
- 
- getTotalNoticiasRequisitadas()
- getTotalNoticiasFiltradas()
+    removerBotoesPaginacao() 
+   
+   
 }
 
 
@@ -307,6 +306,58 @@ function adicionarPrefixoEditorias(editorias) {
 
 
 
+async function getTotalNoticiasRequisitadas() {
+    try {
+        var selectBoxTipo = document.getElementById("button-tipo");
+        var selectBoxQtd = document.getElementById("button-qtd");
+        var inputDe = document.getElementById("button-de");
+        var inputAte = document.getElementById("button-ate");
+        
+        var selectedValueTipo = selectBoxTipo.options[selectBoxTipo.selectedIndex].value;
+        var selectedValueQtd = selectBoxQtd.options[selectBoxQtd.selectedIndex].value;
+        var deValue = inputDe.value;
+        var ateValue = inputAte.value;
+
+        // Obtém o termo de busca da URL, se houver
+        const queryString = window.location.search;
+        const searchTerm = decodeURIComponent(queryString.slice(1));
+
+        // Atualiza a URL da API com os valores selecionados e o termo de busca, se houver
+        const searchParams = new URLSearchParams();
+        searchParams.append('tipo', selectedValueTipo);
+        searchParams.append('qtd', selectedValueQtd);
+        if (searchTerm) {
+            searchParams.append('busca', searchTerm);
+        }
+        if (deValue) {
+            searchParams.append('de', deValue);
+        }
+        if (ateValue) {
+            searchParams.append('ate', ateValue);
+        }
+
+        const apiUrlSearch = `https://servicodados.ibge.gov.br/api/v3/noticias/?${searchParams.toString()}`;
+        
+        const response = await fetch(apiUrlSearch);
+        const jsonDataSearch = await response.json();
+
+        let totalNoticiasRequisitadas = 0; // Inicializa a variável com zero
+
+        if (jsonDataSearch.items && jsonDataSearch.items.length > 0) {
+            totalNoticiasRequisitadas = jsonDataSearch.items.length; // Atribui o valor retornado à variável
+          
+        } else {
+            console.log("Nenhuma notícia encontrada com os critérios de busca.");
+        }
+
+        return totalNoticiasRequisitadas; // Retorna a variável com o total de notícias requisitadas
+    } catch (error) {
+        console.error("Ocorreu um erro ao obter o total de notícias requisitadas:", error);
+        return 0; // Retorna zero em caso de erro
+    }
+}
+
+
 async function getTotalNoticiasFiltradas() {
     try {
         // URL da API para buscar todas as notícias
@@ -352,69 +403,125 @@ async function getTotalNoticiasFiltradas() {
             const jsonDataFiltered = await responseFiltered.json();
             const noticiasFiltradas = jsonDataFiltered.items ? jsonDataFiltered.items.length : 0;
 
-            // Imprime o total de notícias disponíveis na API e o total de notícias que se encaixam nos filtros
-            console.log(`Total de notícias disponíveis: ${totalNoticias}`);
             console.log(`Total de notícias que se encaixam nos filtros: ${noticiasFiltradas}`);
+            // Retorna o total de notícias filtradas
+            return noticiasFiltradas;
+           
         } else {
             // Se não houver filtros aplicados, mostra o total de notícias disponíveis
-            console.log(`Total de notícias disponíveis: ${totalNoticias}`);
+          
+            return totalNoticias;
         }
     } catch (error) {
-        // Em caso de erro, imprime o erro no console
         console.error("Ocorreu um erro ao obter o total de notícias filtradas:", error);
+        return 0; // Retorna zero em caso de erro
     }
+    
 }
 
-
-
-async function getTotalNoticiasRequisitadas() {
+function removerBotoesPaginacao() {
+    const divBotoesExistente = document.querySelector('.div-buttons');
+    if (divBotoesExistente) {
+        divBotoesExistente.remove();
+    }
+}
+async function criarBotoesPaginacao() {
     try {
-        var selectBoxTipo = document.getElementById("button-tipo");
-        var selectBoxQtd = document.getElementById("button-qtd");
-        var inputDe = document.getElementById("button-de");
-        var inputAte = document.getElementById("button-ate");
-        
-        var selectedValueTipo = selectBoxTipo.options[selectBoxTipo.selectedIndex].value;
-        var selectedValueQtd = selectBoxQtd.options[selectBoxQtd.selectedIndex].value;
-        var deValue = inputDe.value;
-        var ateValue = inputAte.value;
+        // Obtém o total de notícias e notícias por página
+        const totalNoticias = await getTotalNoticiasFiltradas();
+        const noticiasPorPagina = await getTotalNoticiasRequisitadas();
 
-        // Obtém o termo de busca da URL, se houver
-        const queryString = window.location.search;
-        const searchTerm = decodeURIComponent(queryString.slice(1));
+        console.log(`Total de notícias: ${totalNoticias}`);
+        console.log(`Notícias por página: ${noticiasPorPagina}`);
 
-        // Atualiza a URL da API com os valores selecionados e o termo de busca, se houver
-        const searchParams = new URLSearchParams();
-        searchParams.append('tipo', selectedValueTipo);
-        searchParams.append('qtd', selectedValueQtd);
-        if (searchTerm) {
-            searchParams.append('busca', searchTerm);
-        }
-        if (deValue) {
-            searchParams.append('de', deValue);
-        }
-        if (ateValue) {
-            searchParams.append('ate', ateValue);
+        // Calcula o total de páginas
+        const totalPaginas = Math.ceil(totalNoticias / noticiasPorPagina);
+
+        console.log(`Total de páginas: ${totalPaginas}`);
+
+        // Determina a página atual com base na URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const paginaAtual = parseInt(urlParams.get('pagina')) || 1;
+
+        // Determina o intervalo de páginas a serem exibidas
+        let inicio = paginaAtual - 4; // Exibe até 4 páginas antes da página atual
+        let fim = paginaAtual + 5; // Exibe até 5 páginas após a página atual
+
+        // Verifica se o início está fora dos limites
+        if (inicio < 1) {
+            inicio = 1;
+            fim = Math.min(totalPaginas, 10); // Exibe até 10 páginas no máximo
         }
 
-        const apiUrlSearch = `https://servicodados.ibge.gov.br/api/v3/noticias/?${searchParams.toString()}`;
-        
-        const response = await fetch(apiUrlSearch);
-        const jsonDataSearch = await response.json();
-
-        if (jsonDataSearch.items && jsonDataSearch.items.length > 0) {
-            console.log(`Total de notícias requisitadas: ${jsonDataSearch.items.length}`);
-        } else {
-            console.log("Nenhuma notícia encontrada com os critérios de busca.");
+        // Verifica se o fim está fora dos limites
+        if (fim > totalPaginas) {
+            fim = totalPaginas;
+            inicio = Math.max(1, totalPaginas - 9); // Exibe até 10 páginas no máximo
         }
+
+        // Remove os botões de paginação existentes, se houver
+        const divBotoesExistente = document.querySelector('.div-buttons');
+        if (divBotoesExistente) {
+            divBotoesExistente.remove();
+        }
+
+        // Cria os botões de paginação
+        const divBotoes = document.createElement('div');
+        divBotoes.classList.add('div-buttons');
+
+        const ulBotoes = document.createElement('ul');
+        ulBotoes.classList.add('pagination');
+
+        for (let i = inicio; i <= fim; i++) {
+            const liBotao = document.createElement('li');
+            const button = document.createElement('button');
+            button.textContent = i;
+
+            // Adiciona uma classe especial para indicar a página atual visualmente
+            if (i === paginaAtual) {
+                liBotao.classList.add('pagina-atual');
+                button.style.backgroundColor = '#4682b4'; 
+                button.style.color = 'white';// Cor da página atual
+            }
+
+            // Adiciona um evento de clique para identificar a página clicada
+           // Adiciona um evento de clique para identificar a página clicada
+// Adiciona um evento de clique para identificar a página clicada
+button.addEventListener('click', function() {
+    // Salva a posição atual da janela
+    const scrollY = window.scrollY;
+
+    // Atualiza a URL para refletir a página clicada
+    const newUrl = `${window.location.pathname}?pagina=${i}`;
+    window.history.pushState({}, '', newUrl);
+
+    // Recarrega apenas os botões de paginação
+    criarBotoesPaginacao().then(() => {
+        // Restaura a posição da janela após a recarga dos botões
+        window.scrollTo(0, scrollY);
+    });
+});
+
+
+            liBotao.appendChild(button);
+            ulBotoes.appendChild(liBotao);
+        }
+
+        divBotoes.appendChild(ulBotoes);
+        document.body.appendChild(divBotoes);
+
+        // Retornar os valores para que possam ser acessados externamente
+        return { inicio, fim };
     } catch (error) {
-        console.error("Ocorreu um erro ao obter o total de notícias requisitadas:", error);
+        console.error("Ocorreu um erro ao criar os botões de paginação:", error);
     }
 }
 
 
 
-function updateMainContent(data) {
+
+// Dentro da função updateMainContent, você pode capturar esses valores
+async function updateMainContent(data) {
     let html = '';
     const apiUrl = 'https://agenciadenoticias.ibge.gov.br/';
 
@@ -462,7 +569,7 @@ function updateMainContent(data) {
         `;
         
         // Chama a função para criar os botões de paginação
-       // criarBotoesPaginacao(totalNoticias, noticiasPorPagina);
+        const { totalNoticias, noticiasPorPagina } = await criarBotoesPaginacao();
 
         html += `
             </ul>
@@ -485,31 +592,4 @@ function updateMainContent(data) {
         });
     });
 }
-async function criarBotoesPaginacao() {
-    try {
-        const totalNoticias = await getTotalNoticiasRequisitadas();
-        const noticiasPorPagina = await getTotalNoticiasFiltradas();
 
-        const totalPaginas = Math.ceil(totalNoticias / noticiasPorPagina);
-
-        const divBotoes = document.createElement('div');
-        divBotoes.classList.add('div-buttons');
-
-        const ulBotoes = document.createElement('ul');
-        ulBotoes.classList.add('pagination');
-
-        for (let i = 1; i <= totalPaginas; i++) {
-            const liBotao = document.createElement('li');
-            const button = document.createElement('button');
-            button.textContent = i;
-
-            liBotao.appendChild(button);
-            ulBotoes.appendChild(liBotao);
-        }
-
-        divBotoes.appendChild(ulBotoes);
-        document.body.appendChild(divBotoes);
-    } catch (error) {
-        console.error("Ocorreu um erro ao criar os botões de paginação:", error);
-    }
-}
