@@ -494,11 +494,12 @@ button.addEventListener('click', function() {
     // Atualiza a URL para refletir a página clicada
     const newUrl = `${window.location.pathname}?pagina=${i}`;
     window.history.pushState({}, '', newUrl);
-
+ removerBotoesPaginacao()
     // Recarrega apenas os botões de paginação
     criarBotoesPaginacao().then(() => {
         // Restaura a posição da janela após a recarga dos botões
         window.scrollTo(0, scrollY);
+     
     });
 });
 
@@ -538,7 +539,7 @@ async function updateMainContent(data) {
 
                 html += `
                 <div class="div">
-                    <ul>
+                    <ul class ="ul-noticia">
                         <li class="li1">
                             <a href="${urlImagem}" target="_blank">
                                 <img src="${urlImagem}" alt="Imagem da Notícia Intro"/>
@@ -551,9 +552,7 @@ async function updateMainContent(data) {
                                     <p class="editorias">#${editoriasFormatadas}</p>
                                     <p class="tempoPublicacao">${tempoDecorrido}</p>
                                 </div>
-                                <a class="link" href="${data.items[i].link}" target="_blank">
-                                    <button class="leiaMais">Leia Mais</button>
-                                </a>
+                                <button class="leiaMais">Leia Mais</button> <!-- Alterado de <a> para <button> -->
                             </div>
                         </li>
                     </ul>
@@ -575,21 +574,25 @@ async function updateMainContent(data) {
             </ul>
         </div>
         `;
+   
     } else {
         semBusca();
     }
-
+//   html += `
+ //       <footer>
+ //           &copy; Prova segundo bimestre - Programação WEB
+ //       </footer>
+  //  `;
     main.innerHTML = html;
 
     // Adicionando eventos de clique aos botões "Leia Mais"
-    const botoesLeiaMais = document.querySelectorAll('a .leiaMais');
+    const botoesLeiaMais = document.querySelectorAll('.leiaMais'); // Corrigido para selecionar botões
     botoesLeiaMais.forEach(botao => {
         botao.addEventListener('click', () => {
             // Obtém o link da notícia
-            const linkNoticia = botao.parentElement.href;
+            const linkNoticia = botao.parentElement.querySelector('a').href; // Corrigido para obter o link da notícia corretamente
             // Redireciona para o link da notícia
             window.open(linkNoticia, '_blank');
         });
     });
 }
-
