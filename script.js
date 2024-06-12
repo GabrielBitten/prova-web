@@ -425,45 +425,34 @@ function removerBotoesPaginacao() {
         divBotoesExistente.remove();
     }
 }
+
+
 async function criarBotoesPaginacao() {
     try {
         // Obtém o total de notícias e notícias por página
         const totalNoticias = await getTotalNoticiasFiltradas();
         const noticiasPorPagina = await getTotalNoticiasRequisitadas();
 
-        console.log(`Total de notícias: ${totalNoticias}`);
-        console.log(`Notícias por página: ${noticiasPorPagina}`);
-
-        // Calcula o total de páginas
         const totalPaginas = Math.ceil(totalNoticias / noticiasPorPagina);
 
-        console.log(`Total de páginas: ${totalPaginas}`);
-
-        // Determina a página atual com base na URL
         const urlParams = new URLSearchParams(window.location.search);
         const paginaAtual = parseInt(urlParams.get('pagina')) || 1;
 
-        // Determina o intervalo de páginas a serem exibidas
-        let inicio = paginaAtual - 4; // Exibe até 4 páginas antes da página atual
-        let fim = paginaAtual + 5; // Exibe até 5 páginas após a página atual
+        let inicio = paginaAtual - 5;
+        let fim = paginaAtual + 4;
 
-        // Verifica se o início está fora dos limites
         if (inicio < 1) {
             inicio = 1;
-            fim = Math.min(totalPaginas, 10); // Exibe até 10 páginas no máximo
+            fim = Math.min(totalPaginas, 10);
         }
 
-        // Verifica se o fim está fora dos limites
         if (fim > totalPaginas) {
             fim = totalPaginas;
-            inicio = Math.max(1, totalPaginas - 9); // Exibe até 10 páginas no máximo
+            inicio = Math.max(1, totalPaginas - 9);
         }
 
         // Remove os botões de paginação existentes, se houver
-        const divBotoesExistente = document.querySelector('.div-buttons');
-        if (divBotoesExistente) {
-            divBotoesExistente.remove();
-        }
+        removerBotoesPaginacao();
 
         // Cria os botões de paginação
         const divBotoes = document.createElement('div');
@@ -477,41 +466,36 @@ async function criarBotoesPaginacao() {
             const button = document.createElement('button');
             button.textContent = i;
 
-            // Adiciona uma classe especial para indicar a página atual visualmente
             if (i === paginaAtual) {
                 liBotao.classList.add('pagina-atual');
                 button.style.backgroundColor = '#4682b4'; 
-                button.style.color = 'white';// Cor da página atual
+                button.style.color = 'white';
             }
 
-            // Adiciona um evento de clique para identificar a página clicada
-           // Adiciona um evento de clique para identificar a página clicada
-// Adiciona um evento de clique para identificar a página clicada
-button.addEventListener('click', function() {
-    // Salva a posição atual da janela
-    const scrollY = window.scrollY;
-
-    // Atualiza a URL para refletir a página clicada
-    const newUrl = `${window.location.pathname}?pagina=${i}`;
-    window.history.pushState({}, '', newUrl);
- removerBotoesPaginacao()
-    // Recarrega apenas os botões de paginação
-    criarBotoesPaginacao().then(() => {
-        // Restaura a posição da janela após a recarga dos botões
-        window.scrollTo(0, scrollY);
-     
-    });
-});
-
+            button.addEventListener('click', async function() {
+                const scrollY = window.scrollY;
+            
+                const newUrl = `${window.location.pathname}?pagina=${i}`;
+                window.history.pushState({}, '', newUrl);
+            
+                const urlParams = new URLSearchParams(window.location.search); // Definindo urlParams
+                removerBotoesPaginacao();
+                 criarBotoesPaginacao();
+                await noticiasParaPular(urlParams); // Passando urlParams como argumento
+                window.scrollTo(0, scrollY);
+            });
+            
 
             liBotao.appendChild(button);
             ulBotoes.appendChild(liBotao);
         }
 
         divBotoes.appendChild(ulBotoes);
-        document.body.appendChild(divBotoes);
 
-        // Retornar os valores para que possam ser acessados externamente
+        // Adiciona a divBotoes antes do footer e depois das notícias
+        const mainContent = document.querySelector('main');
+        mainContent.appendChild(divBotoes);
+
         return { inicio, fim };
     } catch (error) {
         console.error("Ocorreu um erro ao criar os botões de paginação:", error);
@@ -521,13 +505,36 @@ button.addEventListener('click', function() {
 
 
 
+async function noticiasParaPular(urlParams) {
+    const noticiasPorPagina = await getTotalNoticiasRequisitadas();
+    const paginaAtual = parseInt(urlParams.get('pagina')) || 1;
+
+    // Deve pular essa quantidade
+    const noticiasSkipadas = (paginaAtual * noticiasPorPagina) - noticiasPorPagina;
+
+    try {
+        // Obtenha os dados novamente
+        const apiUrlSearch = await construirUrlComFiltros(urlParams);
+        const response = await fetch(apiUrlSearch);
+        const jsonDataSearch = await response.json();
+
+        // Chamando a função para atualizar o conteúdo principal sem as primeiras notícias
+        await updateMainContent(jsonDataSearch, noticiasSkipadas);
+    } catch (error) {
+        console.error("Ocorreu um erro ao obter os dados para pular notícias:", error);
+    }
+
+    console.log(noticiasSkipadas);
+}
+
+
 // Dentro da função updateMainContent, você pode capturar esses valores
-async function updateMainContent(data) {
+async function updateMainContent(data, noticiasSkipadas = 0) {
     let html = '';
     const apiUrl = 'https://agenciadenoticias.ibge.gov.br/';
 
     if (data.items && data.items.length > 0) {
-        for (let i = 0; i < data.items.length; i++) {
+        for (let i = noticiasSkipadas; i < data.items.length; i++) { // Início da iteração a partir das notícias puladas
             const imagemStringificada = data.items[i].imagens;
             const caminhoDaImagem = JSON.parse(imagemStringificada).image_intro;
 
@@ -539,7 +546,7 @@ async function updateMainContent(data) {
 
                 html += `
                 <div class="div">
-                    <ul class ="ul-noticia">
+                    <ul class="ul-noticia">
                         <li class="li1">
                             <a href="${urlImagem}" target="_blank">
                                 <img src="${urlImagem}" alt="Imagem da Notícia Intro"/>
@@ -552,7 +559,7 @@ async function updateMainContent(data) {
                                     <p class="editorias">#${editoriasFormatadas}</p>
                                     <p class="tempoPublicacao">${tempoDecorrido}</p>
                                 </div>
-                                <button class="leiaMais">Leia Mais</button> <!-- Alterado de <a> para <button> -->
+                                <button class="leiaMais">Leia Mais</button>
                             </div>
                         </li>
                     </ul>
@@ -561,37 +568,19 @@ async function updateMainContent(data) {
             }
         }
 
-        // Adiciona os botões de paginação
-        html += `
-        <div class="div-buttons">
-            <ul class="pagination">
-        `;
-        
-        // Chama a função para criar os botões de paginação
-        const { totalNoticias, noticiasPorPagina } = await criarBotoesPaginacao();
+        main.innerHTML = html;
 
-        html += `
-            </ul>
-        </div>
-        `;
-   
+        // Chama a função para criar os botões de paginação
+        await criarBotoesPaginacao();
     } else {
         semBusca();
     }
-//   html += `
- //       <footer>
- //           &copy; Prova segundo bimestre - Programação WEB
- //       </footer>
-  //  `;
-    main.innerHTML = html;
 
     // Adicionando eventos de clique aos botões "Leia Mais"
-    const botoesLeiaMais = document.querySelectorAll('.leiaMais'); // Corrigido para selecionar botões
+    const botoesLeiaMais = document.querySelectorAll('.leiaMais');
     botoesLeiaMais.forEach(botao => {
         botao.addEventListener('click', () => {
-            // Obtém o link da notícia
-            const linkNoticia = botao.parentElement.querySelector('a').href; // Corrigido para obter o link da notícia corretamente
-            // Redireciona para o link da notícia
+            const linkNoticia = botao.parentElement.querySelector('a').href;
             window.open(linkNoticia, '_blank');
         });
     });
