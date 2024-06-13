@@ -339,10 +339,20 @@ img {
     height: 250px; 
     object-fit: cover; 
 }
-@media (max-width: 480px) { 
+@media (max-width: 463px) { 
     .li1{ 
         flex-wrap: wrap; 
     }
+    #aplicarForm {
+
+        width: 203px;
+     
+    }
+    #div1,
+    #div2 {
+    
+    max-width: 250px;
+}
  }
 
   

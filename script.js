@@ -70,25 +70,7 @@ async function getBuscaData() {
     }
 }
 
-/*
-async function getBuscaData(termoBusca) {
-    try {
-        const apiUrlSearch = `https://servicodados.ibge.gov.br/api/v3/noticias/?busca=${termoBusca}`;
-        const response = await fetch(apiUrlSearch);
-        const jsonDataSearch = await response.json();
 
-        if (jsonDataSearch.items && jsonDataSearch.items.length > 0) {
-            // Se houver resultados, atualiza o conteúdo principal
-            updateMainContent(jsonDataSearch);
-        } else {
-            // Se não houver resultados, exibe uma mensagem de alerta
-            semBusca()
-        }
-    } catch (error) {
-        console.error("Ocorreu um erro ao buscar:", error);
-    }
-};
-*/
 //VOLTA AO INÍCIO, CLICANDO NO HEADER
 header.addEventListener('click', function () {
 
@@ -140,6 +122,7 @@ document.addEventListener('DOMContentLoaded', () => {
         asyncFoo();
     }
 });
+// Função para obter o total de notícias na API
 
 
 async function asyncFoo() {
@@ -244,40 +227,58 @@ function updateFilterCount() {
 }
 
 
-/*
-function updateMainContent(data) {
-    let html = '';
-//<img src="${data.items[i].imagens}" alt="Imagem da Notícia"/>
 
-    const imagensStringificadas = []
 
-    for (let i = 0; i < 10; i++) {
-
-        const imagemObjeto = JSON.parse(data.items[i].imagens);
-
-        const caminhoDaImagem = imagemObjeto.image_intro || imagemObjeto.image_fulltext;
-
-        html += `
-        <div class="div">
-            <ul>
-                <li>
-                    <img src="${caminhoDaImagem}" alt="Imagem da Notícia"/>
-                    <h2>${data.items[i].titulo}</h2>
-                    <p>${data.items[i].introducao}</p>
-                    <a href="${data.items[i].link}" target="_blank">${data.items[i].link}</a>
-                </li>
-            </ul>
-        </div>
-        `;
-
-    }
-    main.innerHTML = html;
-}*/
 function formatarTempoDecorrido(dataPublicacao) {
     const dataAtual = new Date();
-    const dataPublicacaoObj = new Date(dataPublicacao);
 
-    const diff = Math.abs(dataPublicacaoObj - dataAtual );
+    // Verifica se dataPublicacao é uma string válida antes de tentar dividi-la
+    if (typeof dataPublicacao !== 'string') {
+        return 'Data de publicação inválida';
+    }
+
+    // Dividir a data_publicacao em partes para construir o objeto Date
+    const partesData = dataPublicacao.split(' ');
+    if (partesData.length !== 2) {
+        return 'Data de publicação inválida';
+    }
+
+    const partesDataDDMMYYYY = partesData[0].split('/');
+    if (partesDataDDMMYYYY.length !== 3) {
+        return 'Data de publicação inválida';
+    }
+
+    const partesHora = partesData[1].split(':');
+    if (partesHora.length !== 3) {
+        return 'Data de publicação inválida';
+    }
+
+    // Construir o objeto Date com as partes extraídas
+    const ano = parseInt(partesDataDDMMYYYY[2], 10);
+    const mes = parseInt(partesDataDDMMYYYY[1], 10) - 1; // Mês começa com 0 (janeiro)
+    const dia = parseInt(partesDataDDMMYYYY[0], 10);
+    const hora = parseInt(partesHora[0], 10);
+    const minuto = parseInt(partesHora[1], 10);
+    const segundo = parseInt(partesHora[2], 10);
+
+    // Verifica se os valores obtidos são numéricos e válidos
+    if (
+        isNaN(ano) || isNaN(mes) || isNaN(dia) ||
+        isNaN(hora) || isNaN(minuto) || isNaN(segundo)
+    ) {
+        return 'Data de publicação inválida';
+    }
+
+    // Construir o objeto Date
+    const dataPublicacaoObj = new Date(ano, mes, dia, hora, minuto, segundo);
+
+    // Verifica se o objeto Date foi construído corretamente
+    if (isNaN(dataPublicacaoObj.getTime())) {
+        return 'Data de publicação inválida';
+    }
+
+    // Calcular diferença em milissegundos
+    const diff = Math.abs(dataPublicacaoObj - dataAtual);
     const umDia = 24 * 60 * 60 * 1000;
     const numDias = Math.floor(diff / umDia);
 
@@ -305,28 +306,56 @@ function adicionarPrefixoEditorias(editorias) {
 
 
 
+async function getTotalNoticiasFiltradas() {
+    try {
+        const selectBoxTipo = document.getElementById("button-tipo");
+        const selectedValueTipo = selectBoxTipo.options[selectBoxTipo.selectedIndex].value;
+        const deValue = document.getElementById("button-de").value;
+        const ateValue = document.getElementById("button-ate").value;
+
+        const searchParams = new URLSearchParams();
+        if (selectedValueTipo !== "Selecione") {
+            searchParams.append('tipo', selectedValueTipo);
+        }
+        if (deValue) {
+            searchParams.append('de', deValue);
+        }
+        if (ateValue) {
+            searchParams.append('ate', ateValue);
+        }
+
+        const apiUrlFiltered = `https://servicodados.ibge.gov.br/api/v3/noticias/?${searchParams.toString()}`;
+
+        const responseFiltered = await fetch(apiUrlFiltered);
+        const jsonDataFiltered = await responseFiltered.json();
+
+        const totalNoticiasFiltradas = jsonDataFiltered.count || 0;
+
+        console.log(`Total de notícias que se encaixam nos filtros: ${totalNoticiasFiltradas}`);
+
+        return totalNoticiasFiltradas;
+    } catch (error) {
+        console.error("Ocorreu um erro ao obter o total de notícias filtradas:", error);
+        return 0;
+    }
+}
+
 async function getTotalNoticiasRequisitadas() {
     try {
-        var selectBoxTipo = document.getElementById("button-tipo");
-        var selectBoxQtd = document.getElementById("button-qtd");
-        var inputDe = document.getElementById("button-de");
-        var inputAte = document.getElementById("button-ate");
-        
-        var selectedValueTipo = selectBoxTipo.options[selectBoxTipo.selectedIndex].value;
-        var selectedValueQtd = selectBoxQtd.options[selectBoxQtd.selectedIndex].value;
-        var deValue = inputDe.value;
-        var ateValue = inputAte.value;
+        const selectBoxTipo = document.getElementById("button-tipo");
+        const selectBoxQtd = document.getElementById("button-qtd");
+        const inputDe = document.getElementById("button-de");
+        const inputAte = document.getElementById("button-ate");
 
-        // Obtém o termo de busca da URL, se houver
-        const queryString = window.location.search;
-        const searchTerm = decodeURIComponent(queryString.slice(1));
+        const selectedValueTipo = selectBoxTipo.options[selectBoxTipo.selectedIndex].value;
+        const selectedValueQtd = selectBoxQtd.options[selectBoxQtd.selectedIndex].value;
+        const deValue = inputDe.value;
+        const ateValue = inputAte.value;
 
-        // Atualiza a URL da API com os valores selecionados e o termo de busca, se houver
         const searchParams = new URLSearchParams();
-        searchParams.append('tipo', selectedValueTipo);
         searchParams.append('qtd', selectedValueQtd);
-        if (searchTerm) {
-            searchParams.append('busca', searchTerm);
+        if (selectedValueTipo !== "Selecione") {
+            searchParams.append('tipo', selectedValueTipo);
         }
         if (deValue) {
             searchParams.append('de', deValue);
@@ -336,7 +365,7 @@ async function getTotalNoticiasRequisitadas() {
         }
 
         const apiUrlSearch = `https://servicodados.ibge.gov.br/api/v3/noticias/?${searchParams.toString()}`;
-        
+
         const response = await fetch(apiUrlSearch);
         const jsonDataSearch = await response.json();
 
@@ -348,8 +377,6 @@ async function getTotalNoticiasRequisitadas() {
             console.log("Nenhuma notícia encontrada com os critérios de busca.");
         }
 
-        console.log('Total de notícias requisitadas:', totalNoticiasRequisitadas);
-
         return totalNoticiasRequisitadas;
     } catch (error) {
         console.error("Ocorreu um erro ao obter o total de notícias requisitadas:", error);
@@ -357,55 +384,18 @@ async function getTotalNoticiasRequisitadas() {
     }
 }
 
-async function getTotalNoticiasFiltradas() {
-    try {
-        const apiUrl = "https://servicodados.ibge.gov.br/api/v3/noticias";
 
-        const responseTotal = await fetch(apiUrl);
-        const jsonDataTotal = await responseTotal.json();
-        const totalNoticias = jsonDataTotal.items ? jsonDataTotal.items.length : 0;
 
-        const selectBoxTipo = document.getElementById("button-tipo");
-        const selectedValueTipo = selectBoxTipo.options[selectBoxTipo.selectedIndex].value;
-        const deValue = document.getElementById("button-de").value;
-        const ateValue = document.getElementById("button-ate").value;
 
-        if (selectedValueTipo !== "Selecione" || (deValue || ateValue)) {
-            const queryString = window.location.search;
-            const searchTerm = decodeURIComponent(queryString.slice(1));
 
-            const searchParams = new URLSearchParams();
-            if (selectedValueTipo !== "Selecione") {
-                searchParams.append('tipo', selectedValueTipo);
-            }
-            if (deValue) {
-                searchParams.append('de', deValue);
-            }
-            if (ateValue) {
-                searchParams.append('ate', ateValue);
-            }
-            if (searchTerm) {
-                searchParams.append('busca', searchTerm);
-            }
 
-            const apiUrlFiltered = `https://servicodados.ibge.gov.br/api/v3/noticias/?${searchParams.toString()}`;
 
-            const responseFiltered = await fetch(apiUrlFiltered);
-            const jsonDataFiltered = await responseFiltered.json();
-            const noticiasFiltradas = jsonDataFiltered.items ? jsonDataFiltered.items.length : 0;
 
-            console.log(`Total de notícias que se encaixam nos filtros: ${noticiasFiltradas}`);
 
-            return noticiasFiltradas;
-        } else {
-            console.log('Total de notícias (sem filtros):', totalNoticias);
-            return totalNoticias;
-        }
-    } catch (error) {
-        console.error("Ocorreu um erro ao obter o total de notícias filtradas:", error);
-        return 0;
-    }
-}
+
+
+
+
 
 
 function removerBotoesPaginacao() {
@@ -414,6 +404,9 @@ function removerBotoesPaginacao() {
         divBotoesExistente.remove();
     }
 }
+
+
+
 
 
 async function criarBotoesPaginacao() {
@@ -427,10 +420,14 @@ async function criarBotoesPaginacao() {
         
         const urlParams = new URLSearchParams(window.location.search);
         const paginaAtual = parseInt(urlParams.get('pagina')) || 1;
+
         console.log('Total de notícias:', totalNoticias);
         console.log('Notícias por página:', noticiasPorPagina);
         console.log('Total de páginas:', totalPaginas);
+        console.log('Pagina atual: ', paginaAtual)
+
         let inicio = paginaAtual - 5;
+
         let fim = paginaAtual + 4;
 
         if (inicio < 1) {
@@ -498,7 +495,6 @@ async function criarBotoesPaginacao() {
 
 
 
-
 // Dentro da função updateMainContent, você pode capturar esses valores
 async function updateMainContent(data) {
     let html = '';
@@ -530,7 +526,7 @@ async function updateMainContent(data) {
                                     <p class="editorias">#${editoriasFormatadas}</p>
                                     <p class="tempoPublicacao">${tempoDecorrido}</p>
                                 </div>
-                                <button class="leiaMais">Leia Mais</button>
+                                      <button class="leiaMais" onclick="window.open('${data.items[i].link}', '_blank')">Leia Mais</button>
                             </div>
                         </li>
                     </ul>
@@ -547,12 +543,5 @@ async function updateMainContent(data) {
         semBusca();
     }
 
-    // Adicionando eventos de clique aos botões "Leia Mais"
-    const botoesLeiaMais = document.querySelectorAll('.leiaMais');
-    botoesLeiaMais.forEach(botao => {
-        botao.addEventListener('click', () => {
-            const linkNoticia = botao.parentElement.querySelector('a').href;
-            window.open(linkNoticia, '_blank');
-        });
-    });
+   
 }
