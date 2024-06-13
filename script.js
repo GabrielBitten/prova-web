@@ -305,7 +305,6 @@ function adicionarPrefixoEditorias(editorias) {
 
 
 
-
 async function getTotalNoticiasRequisitadas() {
     try {
         var selectBoxTipo = document.getElementById("button-tipo");
@@ -341,46 +340,40 @@ async function getTotalNoticiasRequisitadas() {
         const response = await fetch(apiUrlSearch);
         const jsonDataSearch = await response.json();
 
-        let totalNoticiasRequisitadas = 0; // Inicializa a variável com zero
+        let totalNoticiasRequisitadas = 0;
 
         if (jsonDataSearch.items && jsonDataSearch.items.length > 0) {
-            totalNoticiasRequisitadas = jsonDataSearch.items.length; // Atribui o valor retornado à variável
-          
+            totalNoticiasRequisitadas = jsonDataSearch.items.length;
         } else {
             console.log("Nenhuma notícia encontrada com os critérios de busca.");
         }
 
-        return totalNoticiasRequisitadas; // Retorna a variável com o total de notícias requisitadas
+        console.log('Total de notícias requisitadas:', totalNoticiasRequisitadas);
+
+        return totalNoticiasRequisitadas;
     } catch (error) {
         console.error("Ocorreu um erro ao obter o total de notícias requisitadas:", error);
-        return 0; // Retorna zero em caso de erro
+        return 0;
     }
 }
 
-
 async function getTotalNoticiasFiltradas() {
     try {
-        // URL da API para buscar todas as notícias
         const apiUrl = "https://servicodados.ibge.gov.br/api/v3/noticias";
 
-        // Faz a requisição à API para obter o total de notícias disponíveis
         const responseTotal = await fetch(apiUrl);
         const jsonDataTotal = await responseTotal.json();
         const totalNoticias = jsonDataTotal.items ? jsonDataTotal.items.length : 0;
 
-        // Obtém os valores dos filtros
         const selectBoxTipo = document.getElementById("button-tipo");
         const selectedValueTipo = selectBoxTipo.options[selectBoxTipo.selectedIndex].value;
         const deValue = document.getElementById("button-de").value;
         const ateValue = document.getElementById("button-ate").value;
 
-        // Verifica se há filtros aplicados
         if (selectedValueTipo !== "Selecione" || (deValue || ateValue)) {
-            // Obtém o termo de busca da URL, se houver
             const queryString = window.location.search;
             const searchTerm = decodeURIComponent(queryString.slice(1));
 
-            // Atualiza a URL da API com os valores selecionados e o termo de busca, se houver
             const searchParams = new URLSearchParams();
             if (selectedValueTipo !== "Selecione") {
                 searchParams.append('tipo', selectedValueTipo);
@@ -395,29 +388,25 @@ async function getTotalNoticiasFiltradas() {
                 searchParams.append('busca', searchTerm);
             }
 
-            // URL da API para buscar notícias com os filtros aplicados
             const apiUrlFiltered = `https://servicodados.ibge.gov.br/api/v3/noticias/?${searchParams.toString()}`;
 
-            // Faz a requisição à API para obter as notícias filtradas
             const responseFiltered = await fetch(apiUrlFiltered);
             const jsonDataFiltered = await responseFiltered.json();
             const noticiasFiltradas = jsonDataFiltered.items ? jsonDataFiltered.items.length : 0;
 
             console.log(`Total de notícias que se encaixam nos filtros: ${noticiasFiltradas}`);
-            // Retorna o total de notícias filtradas
+
             return noticiasFiltradas;
-           
         } else {
-            // Se não houver filtros aplicados, mostra o total de notícias disponíveis
-          
+            console.log('Total de notícias (sem filtros):', totalNoticias);
             return totalNoticias;
         }
     } catch (error) {
         console.error("Ocorreu um erro ao obter o total de notícias filtradas:", error);
-        return 0; // Retorna zero em caso de erro
+        return 0;
     }
-    
 }
+
 
 function removerBotoesPaginacao() {
     const divBotoesExistente = document.querySelector('.div-buttons');
@@ -435,9 +424,12 @@ async function criarBotoesPaginacao() {
 
         const totalPaginas = Math.ceil(totalNoticias / noticiasPorPagina);
 
+        
         const urlParams = new URLSearchParams(window.location.search);
         const paginaAtual = parseInt(urlParams.get('pagina')) || 1;
-
+        console.log('Total de notícias:', totalNoticias);
+        console.log('Notícias por página:', noticiasPorPagina);
+        console.log('Total de páginas:', totalPaginas);
         let inicio = paginaAtual - 5;
         let fim = paginaAtual + 4;
 
@@ -481,7 +473,7 @@ async function criarBotoesPaginacao() {
                 const urlParams = new URLSearchParams(window.location.search); // Definindo urlParams
                 removerBotoesPaginacao();
                  criarBotoesPaginacao();
-                await noticiasParaPular(urlParams); // Passando urlParams como argumento
+              // Passando urlParams como argumento
                 window.scrollTo(0, scrollY);
             });
             
@@ -505,36 +497,15 @@ async function criarBotoesPaginacao() {
 
 
 
-async function noticiasParaPular(urlParams) {
-    const noticiasPorPagina = await getTotalNoticiasRequisitadas();
-    const paginaAtual = parseInt(urlParams.get('pagina')) || 1;
-
-    // Deve pular essa quantidade
-    const noticiasSkipadas = (paginaAtual * noticiasPorPagina) - noticiasPorPagina;
-
-    try {
-        // Obtenha os dados novamente
-        const apiUrlSearch = await construirUrlComFiltros(urlParams);
-        const response = await fetch(apiUrlSearch);
-        const jsonDataSearch = await response.json();
-
-        // Chamando a função para atualizar o conteúdo principal sem as primeiras notícias
-        await updateMainContent(jsonDataSearch, noticiasSkipadas);
-    } catch (error) {
-        console.error("Ocorreu um erro ao obter os dados para pular notícias:", error);
-    }
-
-    console.log(noticiasSkipadas);
-}
 
 
 // Dentro da função updateMainContent, você pode capturar esses valores
-async function updateMainContent(data, noticiasSkipadas = 0) {
+async function updateMainContent(data) {
     let html = '';
     const apiUrl = 'https://agenciadenoticias.ibge.gov.br/';
 
     if (data.items && data.items.length > 0) {
-        for (let i = noticiasSkipadas; i < data.items.length; i++) { // Início da iteração a partir das notícias puladas
+        for (let i = 0; i < data.items.length; i++) {
             const imagemStringificada = data.items[i].imagens;
             const caminhoDaImagem = JSON.parse(imagemStringificada).image_intro;
 
