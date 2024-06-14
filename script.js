@@ -222,7 +222,7 @@ function updateFilterCount() {
   
     filterCount.textContent = count;
     removerBotoesPaginacao() 
-   
+   totalNoticias()
    
 }
 
@@ -231,54 +231,15 @@ function updateFilterCount() {
 
 function formatarTempoDecorrido(dataPublicacao) {
     const dataAtual = new Date();
+    const dataPublicacaoObj = new Date(dataPublicacao);
 
-    // Verifica se dataPublicacao é uma string válida antes de tentar dividi-la
-    if (typeof dataPublicacao !== 'string') {
-        return 'Data de publicação inválida';
-    }
-
-    // Dividir a data_publicacao em partes para construir o objeto Date
-    const partesData = dataPublicacao.split(' ');
-    if (partesData.length !== 2) {
-        return 'Data de publicação inválida';
-    }
-
-    const partesDataDDMMYYYY = partesData[0].split('/');
-    if (partesDataDDMMYYYY.length !== 3) {
-        return 'Data de publicação inválida';
-    }
-
-    const partesHora = partesData[1].split(':');
-    if (partesHora.length !== 3) {
-        return 'Data de publicação inválida';
-    }
-
-    // Construir o objeto Date com as partes extraídas
-    const ano = parseInt(partesDataDDMMYYYY[2], 10);
-    const mes = parseInt(partesDataDDMMYYYY[1], 10) - 1; // Mês começa com 0 (janeiro)
-    const dia = parseInt(partesDataDDMMYYYY[0], 10);
-    const hora = parseInt(partesHora[0], 10);
-    const minuto = parseInt(partesHora[1], 10);
-    const segundo = parseInt(partesHora[2], 10);
-
-    // Verifica se os valores obtidos são numéricos e válidos
-    if (
-        isNaN(ano) || isNaN(mes) || isNaN(dia) ||
-        isNaN(hora) || isNaN(minuto) || isNaN(segundo)
-    ) {
-        return 'Data de publicação inválida';
-    }
-
-    // Construir o objeto Date
-    const dataPublicacaoObj = new Date(ano, mes, dia, hora, minuto, segundo);
-
-    // Verifica se o objeto Date foi construído corretamente
+    // Verifica se dataPublicacao é uma data válida
     if (isNaN(dataPublicacaoObj.getTime())) {
         return 'Data de publicação inválida';
     }
 
     // Calcular diferença em milissegundos
-    const diff = Math.abs(dataPublicacaoObj - dataAtual);
+    const diff = Math.abs(dataAtual - dataPublicacaoObj);
     const umDia = 24 * 60 * 60 * 1000;
     const numDias = Math.floor(diff / umDia);
 
@@ -293,6 +254,7 @@ function formatarTempoDecorrido(dataPublicacao) {
 
     return tempoDecorrido;
 }
+
 
 function adicionarPrefixoEditorias(editorias) {
     const editoriasFormatadas = [];
@@ -331,7 +293,7 @@ async function getTotalNoticiasFiltradas() {
 
         const totalNoticiasFiltradas = jsonDataFiltered.count || 0;
 
-        console.log(`Total de notícias que se encaixam nos filtros: ${totalNoticiasFiltradas}`);
+        
 
         return totalNoticiasFiltradas;
     } catch (error) {
@@ -408,6 +370,22 @@ function removerBotoesPaginacao() {
 
 
 
+async function notPraPular() {
+    try {
+        const noticiasPorPagina = await getTotalNoticiasRequisitadas();
+        const urlParams = new URLSearchParams(window.location.search);
+        const paginaAtual = parseInt(urlParams.get('pagina')) || 1;
+        const noticiasPraPular = (paginaAtual - 1) * noticiasPorPagina;
+
+        console.log('Notícias para pular:', noticiasPraPular);
+
+        return noticiasPraPular;
+    } catch (error) {
+        console.error('Erro ao calcular notícias para pular:', error);
+        return 0; // Retorna 0 em caso de erro
+    }
+}
+
 
 async function criarBotoesPaginacao() {
     try {
@@ -421,6 +399,8 @@ async function criarBotoesPaginacao() {
         const urlParams = new URLSearchParams(window.location.search);
         const paginaAtual = parseInt(urlParams.get('pagina')) || 1;
 
+        
+        notPraPular()
         console.log('Total de notícias:', totalNoticias);
         console.log('Notícias por página:', noticiasPorPagina);
         console.log('Total de páginas:', totalPaginas);
@@ -492,24 +472,48 @@ async function criarBotoesPaginacao() {
 }
 
 
+async function totalNoticias() {
+    try {
+        const apiUrlFiltered = 'https://servicodados.ibge.gov.br/api/v3/noticias/';
+        const responseFiltered = await fetch(apiUrlFiltered);
+        const jsonDataFiltered = await responseFiltered.json();
 
+        const noticiasFiltradas = jsonDataFiltered.items || []; // Array de notícias filtradas
 
+        // Obter o total de notícias filtradas
+        const totalNoticiasFiltradas = await getTotalNoticiasFiltradas();
+
+        const resultado = {
+            total: totalNoticiasFiltradas,
+            noticias: noticiasFiltradas
+        };
+
+        console.log('Resultado:', resultado); // Exibe o resultado no console
+
+        return resultado; // Retorna o objeto com o total e as notícias filtradas
+    } catch (error) {
+        console.error('Ocorreu um erro ao obter as notícias filtradas:', error);
+        return { total: 0, noticias: [] }; // Retorna um objeto vazio em caso de erro
+    }
+}
 
 // Dentro da função updateMainContent, você pode capturar esses valores
-async function updateMainContent(data) {
-    let html = '';
-    const apiUrl = 'https://agenciadenoticias.ibge.gov.br/';
+async function updateMainContent(notPraPular) {
+    try {
+        const { noticias } = await totalNoticias(); // Obtém as notícias filtradas do totalNoticias
 
-    if (data.items && data.items.length > 0) {
-        for (let i = 0; i < data.items.length; i++) {
-            const imagemStringificada = data.items[i].imagens;
+        let html = ''; // Variável para armazenar o HTML das notícias
+        const apiUrl = 'https://agenciadenoticias.ibge.gov.br/';
+
+        noticias.slice(notPraPular).forEach(noticia => {
+            const imagemStringificada = noticia.imagens;
             const caminhoDaImagem = JSON.parse(imagemStringificada).image_intro;
 
             if (caminhoDaImagem) {
                 const urlImagem = apiUrl + caminhoDaImagem;
 
-                const tempoDecorrido = formatarTempoDecorrido(data.items[i].data_publicacao);
-                const editoriasFormatadas = adicionarPrefixoEditorias(data.items[i].editorias);
+                const tempoDecorrido = formatarTempoDecorrido(noticia.data_publicacao);
+                const editoriasFormatadas = adicionarPrefixoEditorias(noticia.editorias);
 
                 html += `
                 <div class="div">
@@ -519,29 +523,29 @@ async function updateMainContent(data) {
                                 <img src="${urlImagem}" alt="Imagem da Notícia Intro"/>
                             </a>
                             <div>
-                                <h2>${data.items[i].titulo}</h2>
-                                <p>${data.items[i].introducao}</p>
+                                <h2>${noticia.titulo}</h2>
+                                <p>${noticia.introducao}</p>
                                 
                                 <div class="info">
                                     <p class="editorias">#${editoriasFormatadas}</p>
                                     <p class="tempoPublicacao">${tempoDecorrido}</p>
                                 </div>
-                                      <button class="leiaMais" onclick="window.open('${data.items[i].link}', '_blank')">Leia Mais</button>
+                                <button class="leiaMais" onclick="window.open('${noticia.link}', '_blank')">Leia Mais</button>
                             </div>
                         </li>
                     </ul>
                 </div>
                 `;
             }
-        }
+        });
 
-        main.innerHTML = html;
+        main.innerHTML = html; // Atualiza o conteúdo principal com as notícias renderizadas
 
         // Chama a função para criar os botões de paginação
         await criarBotoesPaginacao();
-    } else {
+
+    } catch (error) {
+        console.error("Ocorreu um erro ao atualizar o conteúdo principal:", error);
         semBusca();
     }
-
-   
 }
