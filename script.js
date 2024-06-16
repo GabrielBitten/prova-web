@@ -144,32 +144,26 @@ async function asyncFoo() {
 }
 
 document.getElementById("form-filtro").addEventListener("submit", async function() {
-
+  
     await handleChange();
 });
 
 async function handleChange() {
     try {
-        var selectBoxTipo = document.getElementById("button-tipo");
-        var selectBoxQtd = document.getElementById("button-qtd");
-        var inputDe = document.getElementById("button-de");
-        var inputAte = document.getElementById("button-ate");
-        
-        var selectedValueTipo = selectBoxTipo.options[selectBoxTipo.selectedIndex].value;
-        var selectedValueQtd = selectBoxQtd.options[selectBoxQtd.selectedIndex].value;
-        var deValue = inputDe.value;
-        var ateValue = inputAte.value;
+        const selectBoxTipo = document.getElementById("button-tipo");
+        const selectBoxQtd = document.getElementById("button-qtd");
+        const inputDe = document.getElementById("button-de");
+        const inputAte = document.getElementById("button-ate");
 
-        // Obtém o termo de busca da URL, se houver
-        const queryString = window.location.search;
-        const searchTerm = decodeURIComponent(queryString.slice(1));
+        const selectedValueTipo = selectBoxTipo.options[selectBoxTipo.selectedIndex].value;
+        const selectedValueQtd = selectBoxQtd.options[selectBoxQtd.selectedIndex].value;
+        const deValue = inputDe.value;
+        const ateValue = inputAte.value;
 
-        // Atualiza a URL da API com os valores selecionados e o termo de busca, se houver
         const searchParams = new URLSearchParams();
-        searchParams.append('tipo', selectedValueTipo);
         searchParams.append('qtd', selectedValueQtd);
-        if (searchTerm) {
-            searchParams.append('busca', searchTerm);
+        if (selectedValueTipo !== "Selecione") {
+            searchParams.append('tipo', selectedValueTipo);
         }
         if (deValue) {
             searchParams.append('de', deValue);
@@ -179,32 +173,27 @@ async function handleChange() {
         }
 
         const apiUrlSearch = `https://servicodados.ibge.gov.br/api/v3/noticias/?${searchParams.toString()}`;
-        
+
         const response = await fetch(apiUrlSearch);
         const jsonDataSearch = await response.json();
 
         if (jsonDataSearch.items && jsonDataSearch.items.length > 0) {
-            // Se houver resultados, atualiza o conteúdo principal
             updateMainContent(jsonDataSearch);
-            
-            // Atualiza a URL com os parâmetros do filtro
             const newUrl = `${window.location.pathname}?${searchParams.toString()}`;
             window.history.pushState({}, '', newUrl);
         } else {
-            // Se não houver resultados, exibe uma mensagem de alerta
             semBusca();
         }
-
-      
     } catch (error) {
         console.error("Ocorreu um erro ao aplicar o filtro:", error);
     }
     updateFilterCount();
 }
+
 document.addEventListener('DOMContentLoaded', () => {
     // Atualiza a contagem de filtros
     updateFilterCount();
-  
+   
 });
 
 function updateFilterCount() {
@@ -222,10 +211,9 @@ function updateFilterCount() {
   
     filterCount.textContent = count;
     removerBotoesPaginacao() 
-   totalNoticias()
+   
    
 }
-
 
 
 
@@ -239,21 +227,25 @@ function formatarTempoDecorrido(dataPublicacao) {
     }
 
     // Calcular diferença em milissegundos
-    const diff = Math.abs(dataAtual - dataPublicacaoObj);
+    const diff = dataAtual.getTime() - dataPublicacaoObj.getTime();
     const umDia = 24 * 60 * 60 * 1000;
-    const numDias = Math.floor(diff / umDia);
+
+    // Calcula o número de dias
+    const dias = Math.floor(diff / umDia);
 
     let tempoDecorrido = '';
-    if (numDias === 0) {
+
+    if (dias === 0) {
         tempoDecorrido = 'Publicado hoje';
-    } else if (numDias === 1) {
+    } else if (dias === 1) {
         tempoDecorrido = 'Publicado ontem';
     } else {
-        tempoDecorrido = `Publicado há ${numDias} dias`;
+        tempoDecorrido = `Publicado há ${dias} dias`;
     }
 
     return tempoDecorrido;
 }
+
 
 
 function adicionarPrefixoEditorias(editorias) {
@@ -274,33 +266,60 @@ async function getTotalNoticiasFiltradas() {
         const selectedValueTipo = selectBoxTipo.options[selectBoxTipo.selectedIndex].value;
         const deValue = document.getElementById("button-de").value;
         const ateValue = document.getElementById("button-ate").value;
-
-        const searchParams = new URLSearchParams();
-        if (selectedValueTipo !== "Selecione") {
-            searchParams.append('tipo', selectedValueTipo);
-        }
-        if (deValue) {
-            searchParams.append('de', deValue);
-        }
-        if (ateValue) {
-            searchParams.append('ate', ateValue);
-        }
-
-        const apiUrlFiltered = `https://servicodados.ibge.gov.br/api/v3/noticias/?${searchParams.toString()}`;
-
-        const responseFiltered = await fetch(apiUrlFiltered);
-        const jsonDataFiltered = await responseFiltered.json();
-
-        const totalNoticiasFiltradas = jsonDataFiltered.count || 0;
-
+        const urlParams = new URLSearchParams(window.location.search);
         
+        let allItems = []; // Array para armazenar todas as notícias filtradas
 
-        return totalNoticiasFiltradas;
+        let page = parseInt(urlParams.get('pagina')) || 1;; // Começa da primeira página
+
+        while (true) {
+            const searchParams = new URLSearchParams();
+            if (selectedValueTipo !== "Selecione") {
+                searchParams.append('tipo', selectedValueTipo);
+            }
+            if (deValue) {
+                searchParams.append('de', deValue);
+            }
+            if (ateValue) {
+                searchParams.append('ate', ateValue);
+            }
+            searchParams.append('page', page.toString()); // Adiciona o número da página atual
+
+            const apiUrlFiltered = `https://servicodados.ibge.gov.br/api/v3/noticias/?${searchParams.toString()}`;
+
+            const responseFiltered = await fetch(apiUrlFiltered);
+            const jsonDataFiltered = await responseFiltered.json();
+
+            if (jsonDataFiltered.items && jsonDataFiltered.items.length > 0) {
+                // Adiciona os itens da página atual à array allItems
+                allItems.push(...jsonDataFiltered.items);
+            }
+
+            // Verifica se há próxima página
+            if (jsonDataFiltered.nextPage && jsonDataFiltered.nextPage !== 0) {
+                page = jsonDataFiltered.nextPage; // Avança para a próxima página
+            } else {
+                break; // Sai do loop se não houver próxima página
+            }
+        }
+
+        // Imprime os objetos filtrados no console
+        if (allItems.length > 0) {
+            console.log('Total de objetos filtrados:', allItems.length);
+            console.log('Objetos filtrados:', allItems);
+        } else {
+            console.log('Nenhum objeto encontrado com os critérios de filtro.');
+        }
+
+        return allItems;
     } catch (error) {
-        console.error("Ocorreu um erro ao obter o total de notícias filtradas:", error);
-        return 0;
+        console.error("Ocorreu um erro ao obter todas as notícias filtradas:", error);
+        return [];
     }
 }
+
+
+
 
 async function getTotalNoticiasRequisitadas() {
     try {
@@ -347,19 +366,6 @@ async function getTotalNoticiasRequisitadas() {
 }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
 function removerBotoesPaginacao() {
     const divBotoesExistente = document.querySelector('.div-buttons');
     if (divBotoesExistente) {
@@ -386,28 +392,20 @@ async function notPraPular() {
     }
 }
 
-
 async function criarBotoesPaginacao() {
     try {
-        // Obtém o total de notícias e notícias por página
-        const totalNoticias = await getTotalNoticiasFiltradas();
+        const totalNoticiasArray = await getTotalNoticiasFiltradas(); // Obtém a array de notícias filtradas
+        const totalNoticias = totalNoticiasArray.length;
         const noticiasPorPagina = await getTotalNoticiasRequisitadas();
-
         const totalPaginas = Math.ceil(totalNoticias / noticiasPorPagina);
 
-        
         const urlParams = new URLSearchParams(window.location.search);
         const paginaAtual = parseInt(urlParams.get('pagina')) || 1;
 
-        
-        notPraPular()
-        console.log('Total de notícias:', totalNoticias);
-        console.log('Notícias por página:', noticiasPorPagina);
         console.log('Total de páginas:', totalPaginas);
-        console.log('Pagina atual: ', paginaAtual)
+        console.log('Página atual:', paginaAtual);
 
         let inicio = paginaAtual - 5;
-
         let fim = paginaAtual + 4;
 
         if (inicio < 1) {
@@ -420,10 +418,8 @@ async function criarBotoesPaginacao() {
             inicio = Math.max(1, totalPaginas - 9);
         }
 
-        // Remove os botões de paginação existentes, se houver
         removerBotoesPaginacao();
 
-        // Cria os botões de paginação
         const divBotoes = document.createElement('div');
         divBotoes.classList.add('div-buttons');
 
@@ -437,23 +433,19 @@ async function criarBotoesPaginacao() {
 
             if (i === paginaAtual) {
                 liBotao.classList.add('pagina-atual');
-                button.style.backgroundColor = '#4682b4'; 
+                button.style.backgroundColor = '#4682b4';
                 button.style.color = 'white';
             }
 
             button.addEventListener('click', async function() {
-                const scrollY = window.scrollY;
-            
+                
                 const newUrl = `${window.location.pathname}?pagina=${i}`;
                 window.history.pushState({}, '', newUrl);
-            
-                const urlParams = new URLSearchParams(window.location.search); // Definindo urlParams
                 removerBotoesPaginacao();
-                 criarBotoesPaginacao();
-              // Passando urlParams como argumento
-                window.scrollTo(0, scrollY);
+                updateMainContent({ items: totalNoticiasArray }, i);
+                await criarBotoesPaginacao();
+                window.scrollTo(0, 0);
             });
-            
 
             liBotao.appendChild(button);
             ulBotoes.appendChild(liBotao);
@@ -461,7 +453,6 @@ async function criarBotoesPaginacao() {
 
         divBotoes.appendChild(ulBotoes);
 
-        // Adiciona a divBotoes antes do footer e depois das notícias
         const mainContent = document.querySelector('main');
         mainContent.appendChild(divBotoes);
 
@@ -472,48 +463,26 @@ async function criarBotoesPaginacao() {
 }
 
 
-async function totalNoticias() {
-    try {
-        const apiUrlFiltered = 'https://servicodados.ibge.gov.br/api/v3/noticias/';
-        const responseFiltered = await fetch(apiUrlFiltered);
-        const jsonDataFiltered = await responseFiltered.json();
-
-        const noticiasFiltradas = jsonDataFiltered.items || []; // Array de notícias filtradas
-
-        // Obter o total de notícias filtradas
-        const totalNoticiasFiltradas = await getTotalNoticiasFiltradas();
-
-        const resultado = {
-            total: totalNoticiasFiltradas,
-            noticias: noticiasFiltradas
-        };
-
-        console.log('Resultado:', resultado); // Exibe o resultado no console
-
-        return resultado; // Retorna o objeto com o total e as notícias filtradas
-    } catch (error) {
-        console.error('Ocorreu um erro ao obter as notícias filtradas:', error);
-        return { total: 0, noticias: [] }; // Retorna um objeto vazio em caso de erro
-    }
-}
-
 // Dentro da função updateMainContent, você pode capturar esses valores
-async function updateMainContent(notPraPular) {
-    try {
-        const { noticias } = await totalNoticias(); // Obtém as notícias filtradas do totalNoticias
+async function updateMainContent(data) {
+    let html = '';
+    const apiUrl = 'https://agenciadenoticias.ibge.gov.br/';
 
-        let html = ''; // Variável para armazenar o HTML das notícias
-        const apiUrl = 'https://agenciadenoticias.ibge.gov.br/';
+    const noticiasPraPular = await notPraPular(); // Chama a função notPraPular
+    const noticiasPorPagina = await getTotalNoticiasRequisitadas();
+    
+    if (data.items && data.items.length > 0) {
+        const itemsToShow = data.items.slice(noticiasPraPular, noticiasPraPular + noticiasPorPagina);
 
-        noticias.slice(notPraPular).forEach(noticia => {
-            const imagemStringificada = noticia.imagens;
+        for (let i = 0; i < itemsToShow.length; i++) {
+            const imagemStringificada = itemsToShow[i].imagens;
             const caminhoDaImagem = JSON.parse(imagemStringificada).image_intro;
 
             if (caminhoDaImagem) {
                 const urlImagem = apiUrl + caminhoDaImagem;
 
-                const tempoDecorrido = formatarTempoDecorrido(noticia.data_publicacao);
-                const editoriasFormatadas = adicionarPrefixoEditorias(noticia.editorias);
+                const tempoDecorrido = formatarTempoDecorrido(itemsToShow[i].data_publicacao);
+                const editoriasFormatadas = adicionarPrefixoEditorias(itemsToShow[i].editorias);
 
                 html += `
                 <div class="div">
@@ -523,29 +492,27 @@ async function updateMainContent(notPraPular) {
                                 <img src="${urlImagem}" alt="Imagem da Notícia Intro"/>
                             </a>
                             <div>
-                                <h2>${noticia.titulo}</h2>
-                                <p>${noticia.introducao}</p>
-                                
+                                <h2>${itemsToShow[i].titulo}</h2>
+                                <p>${itemsToShow[i].introducao}</p>
+
                                 <div class="info">
                                     <p class="editorias">#${editoriasFormatadas}</p>
                                     <p class="tempoPublicacao">${tempoDecorrido}</p>
                                 </div>
-                                <button class="leiaMais" onclick="window.open('${noticia.link}', '_blank')">Leia Mais</button>
+                                <button class="leiaMais" onclick="window.open('${itemsToShow[i].link}', '_blank')">Leia Mais</button>
                             </div>
                         </li>
                     </ul>
                 </div>
                 `;
             }
-        });
+        }
 
-        main.innerHTML = html; // Atualiza o conteúdo principal com as notícias renderizadas
+        main.innerHTML = html;
 
-        // Chama a função para criar os botões de paginação
-        await criarBotoesPaginacao();
+        await criarBotoesPaginacao(); // Atualiza a paginação após renderizar os itens
 
-    } catch (error) {
-        console.error("Ocorreu um erro ao atualizar o conteúdo principal:", error);
+    } else {
         semBusca();
     }
 }
