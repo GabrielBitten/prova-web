@@ -157,8 +157,8 @@ async function handleChange() {
 
         const selectedValueTipo = selectBoxTipo.options[selectBoxTipo.selectedIndex].value;
         const selectedValueQtd = selectBoxQtd.options[selectBoxQtd.selectedIndex].value;
-        const deValue = inputDe.value;
-        const ateValue = inputAte.value;
+        const deValue = inputDe.value ? new Date(inputDe.value).toISOString() : '';
+        const ateValue = inputAte.value ? new Date(inputAte.value).toISOString() : '';
 
         const searchParams = new URLSearchParams();
         searchParams.append('qtd', selectedValueQtd);
@@ -227,11 +227,11 @@ function formatarTempoDecorrido(dataPublicacao) {
         return 'Data de publicação inválida';
     }
 
-    // Calcular diferença em milissegundos
+   
     const diff = dataAtual.getTime() - dataPublicacaoObj.getTime();
     const umDia = 24 * 60 * 60 * 1000;
 
-    // Calcula o número de dias
+
     const dias = Math.floor(diff / umDia);
 
     let tempoDecorrido = '';
@@ -270,9 +270,9 @@ async function getTotalNoticiasFiltradas() {
         const ateValue = document.getElementById("button-ate").value;
         const urlParams = new URLSearchParams(window.location.search);
         
-        let allItems = []; // Array para armazenar todas as notícias filtradas
+        let allItems = []; 
 
-        let page = parseInt(urlParams.get('pagina')) || 1; // Começa da primeira página
+        let page = parseInt(urlParams.get('pagina')) || 1; 
 
         while (true) {
             const searchParams = new URLSearchParams();
@@ -305,15 +305,9 @@ async function getTotalNoticiasFiltradas() {
             }
         }
 
-        if (primeiraExecucao) {
-            // Na primeira execução, adiciona os primeiros 30 itens de allItems em itensRemovidos
-            console.log("Primeira execução. Adicionando itens removidos.");
+       
             itensRemovidos = allItems.slice(0, 30);
-            primeiraExecucao = false; // Marca que não é mais a primeira execução
-        }else{
-            itensRemovidos = allItems.slice(0, 30);
-            primeiraExecucao = true
-        }
+        
 
         console.log("All Items:", allItems);
         console.log("Itens removidos:", itensRemovidos);
@@ -518,7 +512,7 @@ async function updateMainContent(data) {
 
         main.innerHTML = html;
 
-        await criarBotoesPaginacao(); // Atualiza a paginação após renderizar os itens
+        await criarBotoesPaginacao(); 
 
     } else {
         semBusca();

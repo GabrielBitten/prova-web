@@ -21,7 +21,7 @@ header {
 #abrir-filtro {
     position: absolute;
     cursor: pointer;
-    top: 12vh;
+    top: 14vh;
     right: 2vh;
     height: 50px;
     width: 50px;
@@ -48,15 +48,25 @@ input[type="date"] {
 p {
     margin: 0;
 }
+div {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    
+}
 #div1,
 #div2 {
-    display: flex;
+    display: grid;
     gap: 10px;
-    max-width: 450px;
+    width: 100%;
+     /* Centraliza os grids */
 }
-#div1{
-margin-top: 25px;
-}
+
+
+
+
 .div3,
 .div4 {
     display: flex;
@@ -64,8 +74,7 @@ margin-top: 25px;
     justify-content: space-between;
     align-items: center;
     flex-direction: column;
-    width: 200px;
-  
+    width: auto; /* Para ocupar todo o espaço disponível na grid */
 }
 
 #div1 label,
@@ -77,7 +86,7 @@ margin-top: 25px;
 
 #div1 select{
     margin: 3px;
-    width: 99%;
+    width: 190px;
     
 }
 select,input{
@@ -99,7 +108,7 @@ select,input{
     max-width: 90vw;
     padding: 0;
     border-radius: 5px;
-    margin-top:10px ;
+    margin-top:20px ;
     margin-bottom: 25px;
 }
 
@@ -148,6 +157,7 @@ main ul {
 select {
     border-radius: 3px;
     border: 1px solid;
+    width: 175px;
 }
 
 button,
@@ -171,6 +181,7 @@ input {
 }
 
 #search {
+    position: relative;
     width: 50vw;
     height: 5vh;
     border-radius: 7px;
@@ -220,14 +231,7 @@ main {
     background-color: #f0f0f0;
 }
 
-div {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    align-items: center;
-    width: 100%;
-    
-}
+
 
 
 .ul-noticia {
@@ -343,11 +347,7 @@ img {
     .li1{ 
         flex-wrap: wrap; 
     }
-    #aplicarForm {
-
-        width: 203px;
-     
-    }
+   
     #div1,
     #div2 {
     
@@ -368,3 +368,16 @@ img {
       
     }
 
+    @media (min-width: 760px) {
+        #sec-form {
+            display: grid;
+            grid-template-columns: 1fr 1fr; /* Duas colunas iguais */
+            gap: 20px;
+        }
+      
+    }
+    @media (max-width:760px){
+        #aplicarForm{
+            width: 203px;
+        }
+    }
