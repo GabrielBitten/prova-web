@@ -193,6 +193,7 @@ async function handleChange() {
 document.addEventListener('DOMContentLoaded', () => {
     // Atualiza a contagem de filtros
     updateFilterCount();
+    
    
 });
 
@@ -258,7 +259,8 @@ function adicionarPrefixoEditorias(editorias) {
 
 
 
-
+let primeiraExecucao = true;
+let itensRemovidos = [];
 
 async function getTotalNoticiasFiltradas() {
     try {
@@ -270,7 +272,7 @@ async function getTotalNoticiasFiltradas() {
         
         let allItems = []; // Array para armazenar todas as notícias filtradas
 
-        let page = parseInt(urlParams.get('pagina')) || 1;; // Começa da primeira página
+        let page = parseInt(urlParams.get('pagina')) || 1; // Começa da primeira página
 
         while (true) {
             const searchParams = new URLSearchParams();
@@ -303,21 +305,25 @@ async function getTotalNoticiasFiltradas() {
             }
         }
 
-        // Imprime os objetos filtrados no console
-        if (allItems.length > 0) {
-            console.log('Total de objetos filtrados:', allItems.length);
-            console.log('Objetos filtrados:', allItems);
-        } else {
-            console.log('Nenhum objeto encontrado com os critérios de filtro.');
+        if (primeiraExecucao) {
+            // Na primeira execução, adiciona os primeiros 30 itens de allItems em itensRemovidos
+            console.log("Primeira execução. Adicionando itens removidos.");
+            itensRemovidos = allItems.slice(0, 30);
+            primeiraExecucao = false; // Marca que não é mais a primeira execução
+        }else{
+            itensRemovidos = allItems.slice(0, 30);
+            primeiraExecucao = true
         }
 
-        return allItems;
+        console.log("All Items:", allItems);
+        console.log("Itens removidos:", itensRemovidos);
+
+        return allItems; // Retorna todos os itens filtrados
     } catch (error) {
         console.error("Ocorreu um erro ao obter todas as notícias filtradas:", error);
         return [];
     }
 }
-
 
 
 
@@ -442,7 +448,9 @@ async function criarBotoesPaginacao() {
                 const newUrl = `${window.location.pathname}?pagina=${i}`;
                 window.history.pushState({}, '', newUrl);
                 removerBotoesPaginacao();
+
                 updateMainContent({ items: totalNoticiasArray }, i);
+                
                 await criarBotoesPaginacao();
                 window.scrollTo(0, 0);
             });
